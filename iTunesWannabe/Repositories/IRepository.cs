@@ -9,7 +9,8 @@ namespace iTunesWannabe.Repositories
     public interface IRepository<T>
     {
        public  List<T> GetAll();
-       public T GetById(int id);
-
+       
+        public List<T> GetPage(int range, int offset);
+        public T GetById(int id);
     }
 }

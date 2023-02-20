@@ -6,6 +6,10 @@ CustomerRepository getCustomerInfo = new CustomerRepository();
 
 //getCustomerInfo.GetById(23);
 
-getCustomerInfo.PrintCustomerInfo(getCustomerInfo.GetByName("Daan"));
+foreach(Customer co in getCustomerInfo.GetPage(500, 10))
+{
+    Console.WriteLine(co.FirstName);
+}
+//getCustomerInfo.PrintCustomerInfo(getCustomerInfo.GetByName("Daan"));
 
 //getCustomerInfo.PrintCustomerInfo(getCustomerInfo.GetByName("Marc"));
