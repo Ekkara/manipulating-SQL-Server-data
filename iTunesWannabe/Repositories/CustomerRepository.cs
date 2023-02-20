@@ -114,9 +114,8 @@ namespace iTunesWannabe.Repositories
 
         public Customer GetByName(string name)
         {
+            string sql = $"SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer WHERE FirstName LIKE '%{name}%'";
             List<Customer> allCustomers = new List<Customer>();
-            string sql = $"SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer WHERE FirstName";
-            //string sql = $"SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer WHERE FirstName LIKE '${name}'";
             try
             {
                 using (SqlConnection conn = new SqlConnection(ConnectionStringHelper.GetConnectionStringBuilder()))
@@ -131,7 +130,7 @@ namespace iTunesWannabe.Repositories
                             while (reader.Read())
                             {
                                 //handle result
-                                Customer temp = new Customer(
+                                return new Customer(
                                  reader.IsDBNull(0) ? -1 : reader.GetInt32(0),
                                  reader.IsDBNull(1) ? "NULL" : reader.GetString(1),
                                  reader.IsDBNull(2) ? "NULL" : reader.GetString(2),
@@ -139,11 +138,6 @@ namespace iTunesWannabe.Repositories
                                  reader.IsDBNull(4) ? "NULL" : reader.GetString(4),
                                  reader.IsDBNull(5) ? "NULL" : reader.GetString(5),
                                  reader.IsDBNull(6) ? "NULL" : reader.GetString(6));
-                                
-                                if(temp.FirstName == name)
-                                {
-                                    return temp;
-                                }
                             }
                         }
                     }
@@ -154,6 +148,7 @@ namespace iTunesWannabe.Repositories
                 //failed
                 Console.WriteLine("something went wrong: " + error);
             }
+            Console.WriteLine("no " + name + "was found");
             return null;
         }
 
