@@ -51,8 +51,9 @@ namespace iTunesWannabe.Models
         }
         public override string ToString()
         {
-            return 
-            FirstName + "  "
+            return
+            CustmerID + " "    
+            + FirstName + "  "
             + LastName + "  "
             + Country + "  "
             + PostalCode + "  "

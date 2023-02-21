@@ -15,6 +15,6 @@ namespace iTunesWannabe.Repositories
 
         public List<Customer> GetAllCustomersByName(string name);
 
-        public Customer GetOneCustomersByName(string name);
+        public Customer GetOneCustomerByName(string name);
     }
 }
