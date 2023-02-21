@@ -100,17 +100,18 @@ namespace iTunesWannabe.Repositories
         public void AddNewElement(Customer customer)
         {
             bool success = false;
-            string sql = "INSERT INTO Customer(CustomerId, FirstName, LastName, Country, PostalCode, Phone, Email) " +
-                $"VALUES({customer.CustmerID}, {customer.FirstName},{customer.LastName},{customer.Country},{customer.PostalCode},{customer.Phone},{customer.Email});";
-
+            string sql = "INSERT INTO Customer(FirstName, LastName, Country, PostalCode, Phone, Email) " +
+               // $"VALUES({customer.FirstName},{customer.LastName},{customer.Country},{customer.PostalCode},{customer.Phone},{customer.Email})";
+              $"VALUES(@FirstName, @LastName, @Country, @PostalCode, @Phone, @Email)";
             try
             {
                 using (SqlConnection conn = new SqlConnection(ConnectionStringHelper.GetConnectionStringBuilder()))
                 {
                     conn.Open();
+
                     using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
-                        cmd.Parameters.AddWithValue("@CustomerId", customer.CustmerID);
+
                         cmd.Parameters.AddWithValue("@FirstName", customer.FirstName);
                         cmd.Parameters.AddWithValue("@LastName", customer.LastName);
                         cmd.Parameters.AddWithValue("@Country", customer.Country);
@@ -126,9 +127,8 @@ namespace iTunesWannabe.Repositories
                     }
                 }
             }
-            catch
-            {
-
+            catch(SqlException ex) {
+                Console.WriteLine(ex.Message);
             }
         }
     }

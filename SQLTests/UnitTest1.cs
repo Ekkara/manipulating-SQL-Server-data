@@ -18,8 +18,9 @@ namespace SQLTests
 {
     public class UnitTest1
     {
+        //only works before modefying chinook customers
         [Fact]
-        public void Test1()
+        public void When_FetchingAllCustomers_Expect_ReturningAListOfAllCustomers()
         {
             //Assign writting this was a mistake
             List<Customer> expectedCustomers = new List<Customer> {

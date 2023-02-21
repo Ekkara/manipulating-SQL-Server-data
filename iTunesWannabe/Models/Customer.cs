@@ -15,9 +15,18 @@ namespace iTunesWannabe.Models
 {
     public class Customer
     {
+        public Customer(string? firstName, string? lastName, string? country, string? postalCode, string? phone, string? email)
+        {
+            this.FirstName = firstName;
+            this.LastName = lastName;
+            this.Country = country;
+            this.PostalCode = postalCode;
+            this.Phone = phone;
+            this.Email = email;
+        }
         public Customer(int? id, string? firstName, string? lastName, string? country, string? postalCode, string? phone, string? email)
         {
-            this.CustmerID = id;
+            this.CustmerID= id;
             this.FirstName = firstName;
             this.LastName = lastName;
             this.Country = country;
