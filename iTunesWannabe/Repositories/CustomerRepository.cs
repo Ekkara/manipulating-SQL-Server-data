@@ -77,108 +77,24 @@ namespace iTunesWannabe.Repositories
         {
             string sql = "SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer";
             return FetchCustomers(sql)[id - 1];
-            /*try
-            {
-                using (SqlConnection conn = new SqlConnection(ConnectionStringHelper.GetConnectionStringBuilder()))
-                {
-                    conn.Open();
-
-                    //make command
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
-                    {
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                //handle result
-                                Customer temp = new Customer(
-                                 reader.IsDBNull(0) ? -1 : reader.GetInt32(0),
-                                 reader.IsDBNull(1) ? "NULL" : reader.GetString(1),
-                                 reader.IsDBNull(2) ? "NULL" : reader.GetString(2),
-                                 reader.IsDBNull(3) ? "NULL" : reader.GetString(3),
-                                 reader.IsDBNull(4) ? "NULL" : reader.GetString(4),
-                                 reader.IsDBNull(5) ? "NULL" : reader.GetString(5),
-                                 reader.IsDBNull(6) ? "NULL" : reader.GetString(6));
-                                allCustomers.Add(temp);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (SqlException error)
-            {
-                //failed
-                Console.WriteLine("something went wrong: " + error);
-            }
-
-            return allCustomers.ElementAt(id - 1);*/
         }
 
-        public List<Customer> GetAllCustomersByName(string name)
+        public List<Customer> GetAllByName(string name)
         {
             string sql = $"SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer WHERE FirstName LIKE '%{name}%'";
             return FetchCustomers(sql);
         }
-        public Customer GetOneCustomerByName(string name)
+        public Customer GetOneByName(string name)
         {
-            List<Customer> customers = GetAllCustomersByName(name);
+            List<Customer> customers = GetAllByName(name);
             if (customers.Count <= 0) throw new Exception($"no customers found with the name {name}");
-            return GetAllCustomersByName(name)[0];
+            return GetAllByName(name)[0];
         }
 
         public List<Customer> GetPage(int range, int offset)
         {
-            List<Customer> allCustomers = new List<Customer>();
             string sql = $"SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer ORDER BY CustomerID OFFSET {offset} ROWS FETCH NEXT {range} ROWS ONLY;";
-
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(ConnectionStringHelper.GetConnectionStringBuilder()))
-                {
-                    conn.Open();
-
-                    //make command
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
-                    {
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            while (reader.Read())
-                            {
-                                //handle result
-                                Customer temp = new Customer(
-                                 reader.IsDBNull(0) ? -1 : reader.GetInt32(0),
-                                 reader.IsDBNull(1) ? "NULL" : reader.GetString(1),
-                                 reader.IsDBNull(2) ? "NULL" : reader.GetString(2),
-                                 reader.IsDBNull(3) ? "NULL" : reader.GetString(3),
-                                 reader.IsDBNull(4) ? "NULL" : reader.GetString(4),
-                                 reader.IsDBNull(5) ? "NULL" : reader.GetString(5),
-                                 reader.IsDBNull(6) ? "NULL" : reader.GetString(6));
-                                allCustomers.Add(temp);
-                            }
-                        }
-                    }
-                }
-            }
-            catch (SqlException error)
-            {
-                //failed
-                Console.WriteLine("something went wrong: " + error);
-            }
-            //connect
-            return allCustomers;
+            return FetchCustomers(sql);
         }
-
-        
-        /*
-        List<Customer> customers = new List<Customer>();
-        CustomerRepository customerRep = new();
-
-        //Act
-        customers = customerRep.GetAll();
-
-        for(int i = 0;i<customers.Count; i++)
-        {
-            Console.WriteLine(customers[i].CustmerID);
-        } */
     }
 }
