@@ -26,7 +26,7 @@ namespace iTunesWannabe.Models
         }
         public Customer(int? id, string? firstName, string? lastName, string? country, string? postalCode, string? phone, string? email)
         {
-            this.CustmerID= id;
+            this.CustomerID= id;
             this.FirstName = firstName;
             this.LastName = lastName;
             this.Country = country;
@@ -34,7 +34,7 @@ namespace iTunesWannabe.Models
             this.Phone = phone;
             this.Email = email;
         }
-        public int? CustmerID { get; private set; }
+        public int? CustomerID { get; private set; }
         public string? FirstName { get; private set; }
         public string? LastName { get; private set; }
         public string? Country { get; private set; }
@@ -44,7 +44,7 @@ namespace iTunesWannabe.Models
 
         public static bool operator ==(Customer customer1, Customer customer2)
         {
-            if (customer1.CustmerID != customer2.CustmerID) return false;
+            if (customer1.CustomerID != customer2.CustomerID) return false;
             if (customer1.FirstName != customer2.FirstName) return false;
             if (customer1.LastName != customer2.LastName) return false;
             if (customer1.Country != customer2.Country)  return false;
@@ -61,7 +61,7 @@ namespace iTunesWannabe.Models
         public override string ToString()
         {
             return
-            CustmerID + " "    
+            CustomerID + " "    
             + FirstName + "  "
             + LastName + "  "
             + Country + "  "

@@ -5,5 +5,5 @@ using System.Collections.Generic;
 
 CustomerRepository customerRep = new();
 Console.WriteLine(customerRep.GetAll().Count);
-customerRep.AddNewElement(new Customer("Test", "Tesson", "Test", "00000", "000 00 0000", "test@test.test"));
+customerRep.UpdateElement(new Customer("Blastoise", "Tesson", "Test", "00000", "000 00 0000", "test@test.test"), 62);
 Console.WriteLine(customerRep.GetAll().Count);

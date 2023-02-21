@@ -12,5 +12,6 @@ namespace iTunesWannabe.Repositories
         public void GetAllCustomerInfo(List<Customer> customers);
         public void PrintCustomerInfo(Customer customer);
         public void AddNewElement(Customer customer);
+        public void UpdateElement(Customer customer, int idIndex);
     }
 }

@@ -48,6 +48,38 @@ namespace iTunesWannabe.Repositories
             }
             return allCustomers;
         }
+
+        private void EditCustomerDatabase(Customer customer, string sql)
+        {
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(ConnectionStringHelper.GetConnectionStringBuilder()))
+                {
+                    conn.Open();
+
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+
+                        cmd.Parameters.AddWithValue("@FirstName", customer.FirstName);
+                        cmd.Parameters.AddWithValue("@LastName", customer.LastName);
+                        cmd.Parameters.AddWithValue("@Country", customer.Country);
+                        cmd.Parameters.AddWithValue("@PostalCode", customer.PostalCode);
+                        cmd.Parameters.AddWithValue("@Phone", customer.Phone);
+                        cmd.Parameters.AddWithValue("@Email", customer.Email);
+
+                        if (cmd.ExecuteNonQuery() <= 0)
+                        {
+                            throw new Exception("could not add new customer " + customer.ToString());
+                        }
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                Console.WriteLine(ex.Message);
+            }
+        }
+
         public List<Customer> GetAll()
         {
             string sql = "SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer";
@@ -64,7 +96,7 @@ namespace iTunesWannabe.Repositories
 
         public void PrintCustomerInfo(Customer customer)
         {
-            Console.WriteLine(customer.CustmerID + "  "
+            Console.WriteLine(customer.CustomerID + "  "
             + customer.FirstName + "  "
             + customer.LastName + "  "
             + customer.Country + "  "
@@ -84,6 +116,7 @@ namespace iTunesWannabe.Repositories
             string sql = $"SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer WHERE FirstName LIKE '%{name}%'";
             return FetchCustomers(sql);
         }
+
         public Customer GetOneByName(string name)
         {
             List<Customer> customers = GetAllByName(name);
@@ -99,37 +132,19 @@ namespace iTunesWannabe.Repositories
 
         public void AddNewElement(Customer customer)
         {
-            bool success = false;
             string sql = "INSERT INTO Customer(FirstName, LastName, Country, PostalCode, Phone, Email) " +
-               // $"VALUES({customer.FirstName},{customer.LastName},{customer.Country},{customer.PostalCode},{customer.Phone},{customer.Email})";
               $"VALUES(@FirstName, @LastName, @Country, @PostalCode, @Phone, @Email)";
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(ConnectionStringHelper.GetConnectionStringBuilder()))
-                {
-                    conn.Open();
 
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
-                    {
+            EditCustomerDatabase(customer, sql);
+        }
 
-                        cmd.Parameters.AddWithValue("@FirstName", customer.FirstName);
-                        cmd.Parameters.AddWithValue("@LastName", customer.LastName);
-                        cmd.Parameters.AddWithValue("@Country", customer.Country);
-                        cmd.Parameters.AddWithValue("@PostalCode", customer.PostalCode);
-                        cmd.Parameters.AddWithValue("@Phone", customer.Phone);
-                        cmd.Parameters.AddWithValue("@Email", customer.Email);
-
-                        success = cmd.ExecuteNonQuery() > 0 ? true : false;
-                        if (!success)
-                        {
-                            throw new Exception("could not add new customer " + customer.ToString());
-                        }
-                    }
-                }
-            }
-            catch(SqlException ex) {
-                Console.WriteLine(ex.Message);
-            }
+        public void UpdateElement(Customer customer, int idIndex)
+        {
+            string sql = "UPDATE Customer " +
+                "SET FirstName = @FirstName, LastName = @LastName, Country = @Country, PostalCode = @PostalCode, Phone = @Phone, Email = @Email " +
+                $"WHERE CustomerId = {idIndex}";
+         
+            EditCustomerDatabase(customer, sql);
         }
     }
 }
