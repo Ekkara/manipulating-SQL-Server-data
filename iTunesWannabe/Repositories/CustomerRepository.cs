@@ -86,7 +86,7 @@ namespace iTunesWannabe.Repositories
             return FetchCustomers(sql);
         }
 
-        public void GetAllCustomerInfo(List<Customer> customers)
+        public void PrintAllCustomerInfo(List<Customer> customers)
         {
             for (int i = 0; i < customers.Count; i++)
             {
@@ -145,6 +145,37 @@ namespace iTunesWannabe.Repositories
                 $"WHERE CustomerId = {idIndex}";
          
             EditCustomerDatabase(customer, sql);
+        }
+
+        public List<Customer> SortCustomersByNationality()
+        {
+            string sqlGetAll = "SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer";
+            List<Customer> allCustomers = FetchCustomers(sqlGetAll);
+
+            Dictionary<string,int> inhabitants = new();
+            
+
+            for(int i = 0; i < allCustomers.Count; i++)
+            {
+                if (!inhabitants.ContainsKey(allCustomers[i].Country)) inhabitants.Add(allCustomers[i].Country, 0);
+            }
+
+            foreach (string key in inhabitants.Keys)
+            {
+               var allIKey = allCustomers.Where(x => x.Country == key);
+                inhabitants[key] = allIKey.Count();
+                Console.WriteLine(key + " : " + inhabitants[key]);
+            }
+
+            /*foreach (string key in inhabitants.Keys)
+            {
+                string sql = $"SELECT * FROM Customer WHERE Country = {key}";
+                List<Customer> list = FetchCustomers(sql);
+                inhabitants[key] = list.Count;
+                Console.WriteLine(key + " : " + inhabitants[key]);
+            }*/
+
+            return null;
         }
     }
 }
