@@ -1,6 +1,7 @@
 ﻿using iTunesWannabe.Models;
 using Microsoft.Data.SqlClient;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -147,7 +148,7 @@ namespace iTunesWannabe.Repositories
             EditCustomerDatabase(customer, sql);
         }
 
-        public List<Customer> SortCustomersByNationality()
+        public string GetHabitantsPerCountry()
         {
             string sqlGetAll = "SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer";
             List<Customer> allCustomers = FetchCustomers(sqlGetAll);
@@ -157,25 +158,18 @@ namespace iTunesWannabe.Repositories
 
             for(int i = 0; i < allCustomers.Count; i++)
             {
-                if (!inhabitants.ContainsKey(allCustomers[i].Country)) inhabitants.Add(allCustomers[i].Country, 0);
+                if (!inhabitants.ContainsKey(allCustomers[i].Country)) inhabitants.Add(allCustomers[i].Country, 1);
+                else inhabitants[allCustomers[i].Country]++;
             }
+            inhabitants = inhabitants.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
 
+            string rValue = "";
             foreach (string key in inhabitants.Keys)
             {
-               var allIKey = allCustomers.Where(x => x.Country == key);
-                inhabitants[key] = allIKey.Count();
-                Console.WriteLine(key + " : " + inhabitants[key]);
+                rValue += key + " : " + inhabitants[key] + '\n';
             }
 
-            /*foreach (string key in inhabitants.Keys)
-            {
-                string sql = $"SELECT * FROM Customer WHERE Country = {key}";
-                List<Customer> list = FetchCustomers(sql);
-                inhabitants[key] = list.Count;
-                Console.WriteLine(key + " : " + inhabitants[key]);
-            }*/
-
-            return null;
+            return rValue;
         }
     }
 }

@@ -13,6 +13,6 @@ namespace iTunesWannabe.Repositories
         public void PrintCustomerInfo(Customer customer);
         public void AddNewElement(Customer customer);
         public void UpdateElement(Customer customer, int idIndex);
-        public List<Customer> SortCustomersByNationality();
+        public string GetHabitantsPerCountry();
     }
 }

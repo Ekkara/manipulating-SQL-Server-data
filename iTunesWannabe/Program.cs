@@ -4,5 +4,5 @@ using System.Collections.Generic;
 
 
 CustomerRepository customerRep = new();
-customerRep.SortCustomersByNationality();
+Console.WriteLine(customerRep.GetHabitantsPerCountry());
 //customerRep.PrintAllCustomerInfo(customerRep.SortCustomersByNationality());
