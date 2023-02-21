@@ -1,5 +1,4 @@
 ﻿using iTunesWannabe.Models;
-using iTunesWannabe.Repositories;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -13,6 +12,7 @@ using System.Collections.Generic;
 using System.Numerics;
 using System.Runtime.ConstrainedExecution;
 using System.Runtime.Intrinsics.Arm;
+using iTunesWannabe.Repositories;
 
 namespace SQLTests
 {

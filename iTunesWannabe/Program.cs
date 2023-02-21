@@ -4,4 +4,4 @@ using System.Collections.Generic;
 
 
 CustomerRepository customerRep = new();
-Console.WriteLine(customerRep.GetById(42).ToString());
+//customerRep.AddNewElement(new Customer("Test", "Tesson", "Test", "00000", "000 00 0000", "test@test.test"));

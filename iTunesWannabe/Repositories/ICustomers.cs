@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace iTunesWannabe.Repositories
 {
-    public interface ICustomers: IRepository<Customer>
+    public interface ICustomers : IRepository<Customer>
     {
         public void GetAllCustomerInfo(List<Customer> customers);
-
         public void PrintCustomerInfo(Customer customer);
+        public void AddNewElement(Customer customer);
     }
 }

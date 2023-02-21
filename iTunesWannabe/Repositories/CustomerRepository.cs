@@ -96,5 +96,40 @@ namespace iTunesWannabe.Repositories
             string sql = $"SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer ORDER BY CustomerID OFFSET {offset} ROWS FETCH NEXT {range} ROWS ONLY;";
             return FetchCustomers(sql);
         }
+
+        public void AddNewElement(Customer customer)
+        {
+            bool success = false;
+            string sql = "INSERT INTO Customer(CustomerId, FirstName, LastName, Country, PostalCode, Phone, Email) " +
+                $"VALUES({customer.CustmerID}, {customer.FirstName},{customer.LastName},{customer.Country},{customer.PostalCode},{customer.Phone},{customer.Email});";
+
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(ConnectionStringHelper.GetConnectionStringBuilder()))
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@CustomerId", customer.CustmerID);
+                        cmd.Parameters.AddWithValue("@FirstName", customer.FirstName);
+                        cmd.Parameters.AddWithValue("@LastName", customer.LastName);
+                        cmd.Parameters.AddWithValue("@Country", customer.Country);
+                        cmd.Parameters.AddWithValue("@PostalCode", customer.PostalCode);
+                        cmd.Parameters.AddWithValue("@Phone", customer.Phone);
+                        cmd.Parameters.AddWithValue("@Email", customer.Email);
+
+                        success = cmd.ExecuteNonQuery() > 0 ? true : false;
+                        if (!success)
+                        {
+                            throw new Exception("could not add new customer " + customer.ToString());
+                        }
+                    }
+                }
+            }
+            catch
+            {
+
+            }
+        }
     }
 }
