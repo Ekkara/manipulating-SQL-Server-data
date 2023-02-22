@@ -150,6 +150,7 @@ namespace iTunesWannabe.Repositories
         {
             string sql = "SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer";
             return FetchCustomers(sql)[id - 1];
+            //todo do this with sql
         }
 
         public List<Customer> GetAllByName(string name)
@@ -245,8 +246,29 @@ namespace iTunesWannabe.Repositories
         public string GetMostPopularGenre(int customerId)
         {
             //(invoice) ->InvoiceId -> (InvoiceLine) -> trackId-> (Track) -> GenereId -> (Genre) -> Genre 
-           
-            string sql = "";
+            string sqlGetCustomerWithID = 
+                "SELECT DISTINCT a.CustomerId, b.InvoiceId, c.TrackId, d.GenreId, e.Name " +
+                "FROM Invoice" +
+                "JOIN (" +
+                "SELECT CustomerId" +
+                "FROM Customer" +
+                "WHERE CustomerId = 2" +
+                ") AS a ON Invoice.CustomerId = a.CustomerId" +
+                "JOIN(" +
+                "SELECT InvoiceId" +
+                "FROM InvoiceLine" +
+                ") AS b ON  Invoice.InvoiceId = b.InvoiceId" +
+                "JOIN(" +
+                "SELECT TrackId, InvoiceId" +
+                "FROM InvoiceLine" +
+                ") AS c ON  Invoice.InvoiceId = c.InvoiceId" +
+                "JOIN(" +
+                "SELECT TrackId, GenreId" +
+                "FROM Track) AS d ON  c.TrackId = d.TrackId" +
+                "JOIN(" +
+                "SELECT Name, GenreId" +
+                "FROM Genre" +
+                ") AS e ON  d.GenreId = e.GenreId";
 
 
             //get name of name of ganre(s)
