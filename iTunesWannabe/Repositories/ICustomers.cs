@@ -9,10 +9,12 @@ namespace iTunesWannabe.Repositories
 {
     public interface ICustomers : IRepository<Customer>
     {
-        public void PrintAllCustomerInfo(List<Customer> customers);
-        public void PrintCustomerInfo(Customer customer);
+        public void PrintAllCustomerInfo(List<Customer> customers, bool displayInvoice = false);
+        public void PrintCustomerInfo(Customer customer, bool displayInvoice = false);
         public void AddNewElement(Customer customer);
         public void UpdateElement(Customer customer, int idIndex);
         public string GetHabitantsPerCountry();
+        public List<Customer> GetHighestSpenders();
+        public string GetMostPopularGenre(int customerId);
     }
 }

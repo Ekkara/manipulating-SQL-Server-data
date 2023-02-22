@@ -15,7 +15,7 @@ namespace iTunesWannabe.Models
 {
     public class Customer
     {
-        public Customer(string? firstName, string? lastName, string? country, string? postalCode, string? phone, string? email)
+        public Customer(string? firstName, string? lastName, string? country, string? postalCode, string? phone, string? email, decimal moneySpent = 0)
         {
             this.FirstName = firstName;
             this.LastName = lastName;
@@ -23,10 +23,11 @@ namespace iTunesWannabe.Models
             this.PostalCode = postalCode;
             this.Phone = phone;
             this.Email = email;
+            this.TotalSpent = moneySpent;
         }
         public Customer(int? id, string? firstName, string? lastName, string? country, string? postalCode, string? phone, string? email)
         {
-            this.CustomerID= id;
+            this.CustomerID = id;
             this.FirstName = firstName;
             this.LastName = lastName;
             this.Country = country;
@@ -34,6 +35,20 @@ namespace iTunesWannabe.Models
             this.Phone = phone;
             this.Email = email;
         }
+        public Customer(Customer customer, decimal moneySpent = 0)
+        {
+            this.FirstName = customer.FirstName;
+            this.LastName = customer.LastName;
+            this.Country = customer.Country;
+            this.PostalCode = customer.PostalCode;
+            this.Phone = customer.Phone;
+            this.Email = customer.Email;
+            this.TotalSpent = customer.TotalSpent;
+            this.TotalSpent = moneySpent;
+            this.CustomerID = customer.CustomerID;
+        }
+
+
         public int? CustomerID { get; private set; }
         public string? FirstName { get; private set; }
         public string? LastName { get; private set; }
@@ -41,15 +56,16 @@ namespace iTunesWannabe.Models
         public string? PostalCode { get; private set; }
         public string? Phone { get; private set; }
         public string? Email { get; private set; }
+        public decimal? TotalSpent { get; private set; }
 
         public static bool operator ==(Customer customer1, Customer customer2)
         {
             if (customer1.CustomerID != customer2.CustomerID) return false;
             if (customer1.FirstName != customer2.FirstName) return false;
             if (customer1.LastName != customer2.LastName) return false;
-            if (customer1.Country != customer2.Country)  return false;
-            if(customer1.PostalCode != customer2.PostalCode) return false;
-            if(customer1.Phone != customer2.Phone) return false;
+            if (customer1.Country != customer2.Country) return false;
+            if (customer1.PostalCode != customer2.PostalCode) return false;
+            if (customer1.Phone != customer2.Phone) return false;
             if (customer1.Email != customer2.Email) return false;
             return true;
         }
@@ -61,7 +77,7 @@ namespace iTunesWannabe.Models
         public override string ToString()
         {
             return
-            CustomerID + " "    
+            CustomerID + " "
             + FirstName + "  "
             + LastName + "  "
             + Country + "  "

@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -49,6 +50,40 @@ namespace iTunesWannabe.Repositories
             }
             return allCustomers;
         }
+        private List<Invoice> FetchInvoices(string sql)
+        {
+            List<Invoice> allInvoices = new List<Invoice>();
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(ConnectionStringHelper.GetConnectionStringBuilder()))
+                {
+                    conn.Open();
+
+                    //make command
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            double a = -1.0;
+                            while (reader.Read())
+                            {
+                                //handle result
+                                allInvoices.Add(new Invoice(
+                                 reader.IsDBNull(0) ? -1 : reader.GetInt32(0),
+                                 (reader.IsDBNull(1) ? -1 : reader.GetDecimal(1))));
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SqlException error)
+            {
+                //failed
+                Console.WriteLine("something went wrong: " + error);
+            }
+            return allInvoices;
+        }
+
 
         private void EditCustomerDatabase(Customer customer, string sql)
         {
@@ -87,23 +122,28 @@ namespace iTunesWannabe.Repositories
             return FetchCustomers(sql);
         }
 
-        public void PrintAllCustomerInfo(List<Customer> customers)
+        public void PrintAllCustomerInfo(List<Customer> customers, bool displayInvoice = false)
         {
             for (int i = 0; i < customers.Count; i++)
             {
-                PrintCustomerInfo(customers[i]);
+                PrintCustomerInfo(customers[i], displayInvoice);
             }
         }
 
-        public void PrintCustomerInfo(Customer customer)
+        public void PrintCustomerInfo(Customer customer, bool displayInvoice = false)
         {
-            Console.WriteLine(customer.CustomerID + "  "
-            + customer.FirstName + "  "
-            + customer.LastName + "  "
-            + customer.Country + "  "
-            + customer.PostalCode + "  "
-            + customer.Phone + "  "
-            + customer.Email);
+            StringBuilder sb = new StringBuilder();
+            sb.Append(customer.CustomerID + "  ");
+            sb.Append(customer.FirstName + "  ");
+            sb.Append(customer.LastName + "  ");
+            sb.Append(customer.Country + "  ");
+            sb.Append(customer.PostalCode + "  ");
+            sb.Append(customer.Phone + "  ");
+            sb.Append(customer.Email + "  ");
+            if(displayInvoice)
+                sb.Append(customer.TotalSpent + "$");
+
+            Console.WriteLine(sb);
         }
 
         public Customer GetById(int id)
@@ -144,7 +184,7 @@ namespace iTunesWannabe.Repositories
             string sql = "UPDATE Customer " +
                 "SET FirstName = @FirstName, LastName = @LastName, Country = @Country, PostalCode = @PostalCode, Phone = @Phone, Email = @Email " +
                 $"WHERE CustomerId = {idIndex}";
-         
+
             EditCustomerDatabase(customer, sql);
         }
 
@@ -153,10 +193,10 @@ namespace iTunesWannabe.Repositories
             string sqlGetAll = "SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer";
             List<Customer> allCustomers = FetchCustomers(sqlGetAll);
 
-            Dictionary<string,int> inhabitants = new();
-            
+            Dictionary<string, int> inhabitants = new();
 
-            for(int i = 0; i < allCustomers.Count; i++)
+
+            for (int i = 0; i < allCustomers.Count; i++)
             {
                 if (!inhabitants.ContainsKey(allCustomers[i].Country)) inhabitants.Add(allCustomers[i].Country, 1);
                 else inhabitants[allCustomers[i].Country]++;
@@ -168,8 +208,49 @@ namespace iTunesWannabe.Repositories
             {
                 rValue += key + " : " + inhabitants[key] + '\n';
             }
-
             return rValue;
+        }
+
+        //todo: use join
+        public List<Customer> GetHighestSpenders()
+        {
+            //fetch all invoices
+            string sql = "SELECT CustomerId, Total FROM Invoice";
+            List<Invoice> invoices = FetchInvoices(sql);
+            Dictionary<int, decimal> customerToInvoice = new();
+
+            //combine all users invoices
+            for(int i = 0; i < invoices.Count; i++)
+            {
+                if (customerToInvoice.ContainsKey(invoices[i].CustomerId)) { customerToInvoice[invoices[i].CustomerId] += invoices[i].Total; }
+                else customerToInvoice.Add(invoices[i].CustomerId, invoices[i].Total);
+            }
+
+
+            //sort top to lowest
+            customerToInvoice = customerToInvoice.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+
+            //find customer from sorted dictionary of higest spenders
+            List<Customer> result = new();
+
+            foreach(int id in customerToInvoice.Keys)
+            {
+                result.Add(new Customer(GetById(id), customerToInvoice[id]));
+            }
+            return result;
+        }
+
+        //For a given customer, their most popular genre (in the case of a tie, display both). Most popular in this context
+        //means the genre that corresponds to the most tracks from invoices associated to that customer.
+        public string GetMostPopularGenre(int customerId)
+        {
+            //(invoice) ->InvoiceId -> (InvoiceLine) -> trackId-> (Track) -> GenereId -> (Genre) -> Genre 
+           
+            string sql = "";
+
+
+            //get name of name of ganre(s)
+            return "";
         }
     }
 }
