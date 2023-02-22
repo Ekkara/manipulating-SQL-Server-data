@@ -13,7 +13,7 @@ namespace iTunesWannabe.Repositories
 {
     public class CustomerRepository : ICustomers
     {
-        private List<Customer> FetchCustomers(string sql)
+        private List<Customer> FetchCustomers(string sql, bool includeInvoice = false)
         {
             List<Customer> allCustomers = new List<Customer>();
             try
@@ -30,14 +30,17 @@ namespace iTunesWannabe.Repositories
                             while (reader.Read())
                             {
                                 //handle result
-                                allCustomers.Add(new Customer(
+                                allCustomers.Add(
+                                    new Customer(
                                  reader.IsDBNull(0) ? -1 : reader.GetInt32(0),
                                  reader.IsDBNull(1) ? "NULL" : reader.GetString(1),
                                  reader.IsDBNull(2) ? "NULL" : reader.GetString(2),
                                  reader.IsDBNull(3) ? "NULL" : reader.GetString(3),
                                  reader.IsDBNull(4) ? "NULL" : reader.GetString(4),
                                  reader.IsDBNull(5) ? "NULL" : reader.GetString(5),
-                                 reader.IsDBNull(6) ? "NULL" : reader.GetString(6)));
+                                 reader.IsDBNull(6) ? "NULL" : reader.GetString(6),
+                                 includeInvoice ? reader.IsDBNull(7) ? -1 : reader.GetDecimal(7) : 0)
+                                    );
                             }
                         }
                     }
@@ -50,40 +53,6 @@ namespace iTunesWannabe.Repositories
             }
             return allCustomers;
         }
-        private List<Invoice> FetchInvoices(string sql)
-        {
-            List<Invoice> allInvoices = new List<Invoice>();
-            try
-            {
-                using (SqlConnection conn = new SqlConnection(ConnectionStringHelper.GetConnectionStringBuilder()))
-                {
-                    conn.Open();
-
-                    //make command
-                    using (SqlCommand cmd = new SqlCommand(sql, conn))
-                    {
-                        using (SqlDataReader reader = cmd.ExecuteReader())
-                        {
-                            double a = -1.0;
-                            while (reader.Read())
-                            {
-                                //handle result
-                                allInvoices.Add(new Invoice(
-                                 reader.IsDBNull(0) ? -1 : reader.GetInt32(0),
-                                 (reader.IsDBNull(1) ? -1 : reader.GetDecimal(1))));
-                            }
-                        }
-                    }
-                }
-            }
-            catch (SqlException error)
-            {
-                //failed
-                Console.WriteLine("something went wrong: " + error);
-            }
-            return allInvoices;
-        }
-
 
         private void EditCustomerDatabase(Customer customer, string sql)
         {
@@ -140,7 +109,7 @@ namespace iTunesWannabe.Repositories
             sb.Append(customer.PostalCode + "  ");
             sb.Append(customer.Phone + "  ");
             sb.Append(customer.Email + "  ");
-            if(displayInvoice)
+            if (displayInvoice)
                 sb.Append(customer.TotalSpent + "$");
 
             Console.WriteLine(sb);
@@ -212,33 +181,17 @@ namespace iTunesWannabe.Repositories
             return rValue;
         }
 
-        //todo: use join
         public List<Customer> GetHighestSpenders()
         {
             //fetch all invoices
-            string sql = "SELECT CustomerId, Total FROM Invoice";
-            List<Invoice> invoices = FetchInvoices(sql);
-            Dictionary<int, decimal> customerToInvoice = new();
+            string sql = "SELECT Customer.CustomerID, Customer.FirstName, Customer.LastName, Customer.Country, Customer.PostalCode, Customer.Phone, Customer.Email, SUM(Invoice.Total) as TotalSpent " +
+                "FROM Invoice " +
+                "JOIN Customer " +
+                "ON Invoice.CustomerId = Customer.CustomerId " +
+                "GROUP BY Customer.CustomerID, Customer.FirstName, Customer.LastName, Customer.Country, Customer.PostalCode, Customer.Phone, Customer.Email " +
+                "ORDER BY TotalSpent DESC";
 
-            //combine all users invoices
-            for(int i = 0; i < invoices.Count; i++)
-            {
-                if (customerToInvoice.ContainsKey(invoices[i].CustomerId)) { customerToInvoice[invoices[i].CustomerId] += invoices[i].Total; }
-                else customerToInvoice.Add(invoices[i].CustomerId, invoices[i].Total);
-            }
-
-
-            //sort top to lowest
-            customerToInvoice = customerToInvoice.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-
-            //find customer from sorted dictionary of higest spenders
-            List<Customer> result = new();
-
-            foreach(int id in customerToInvoice.Keys)
-            {
-                result.Add(new Customer(GetById(id), customerToInvoice[id]));
-            }
-            return result;
+          return FetchCustomers(sql, true);
         }
 
         //For a given customer, their most popular genre (in the case of a tie, display both). Most popular in this context
@@ -278,11 +231,11 @@ namespace iTunesWannabe.Repositories
                 Console.WriteLine("something went wrong: " + error);
             }
             genreToAmount = genreToAmount.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
-            
+
             //add genres to favorites
             int lastAmount = 0;
             List<string> favorites = new();
-            foreach(string key in genreToAmount.Keys)
+            foreach (string key in genreToAmount.Keys)
             {
                 if (genreToAmount[key] >= lastAmount)
                 {
@@ -297,14 +250,14 @@ namespace iTunesWannabe.Repositories
 
             //build string that reveals if it is a favorite or not
             string rValue = "";
-            if(favorites.Count == 1)
+            if (favorites.Count == 1)
             {
                 rValue = "Favorite genre is: " + favorites[0];
             }
-            else if(favorites.Count > 1) 
+            else if (favorites.Count > 1)
             {
                 rValue = "Favourites genres are: ";
-                foreach(string genre in favorites)
+                foreach (string genre in favorites)
                 {
                     rValue += genre + ", ";
                 }

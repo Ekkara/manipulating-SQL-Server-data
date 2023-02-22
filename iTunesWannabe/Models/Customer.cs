@@ -25,7 +25,7 @@ namespace iTunesWannabe.Models
             this.Email = email;
             this.TotalSpent = moneySpent;
         }
-        public Customer(int? id, string? firstName, string? lastName, string? country, string? postalCode, string? phone, string? email)
+        public Customer(int? id, string? firstName, string? lastName, string? country, string? postalCode, string? phone, string? email, decimal? moneySpent = 0)
         {
             this.CustomerID = id;
             this.FirstName = firstName;
@@ -34,18 +34,7 @@ namespace iTunesWannabe.Models
             this.PostalCode = postalCode;
             this.Phone = phone;
             this.Email = email;
-        }
-        public Customer(Customer customer, decimal moneySpent = 0)
-        {
-            this.FirstName = customer.FirstName;
-            this.LastName = customer.LastName;
-            this.Country = customer.Country;
-            this.PostalCode = customer.PostalCode;
-            this.Phone = customer.Phone;
-            this.Email = customer.Email;
-            this.TotalSpent = customer.TotalSpent;
             this.TotalSpent = moneySpent;
-            this.CustomerID = customer.CustomerID;
         }
 
 
