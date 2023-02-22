@@ -246,33 +246,71 @@ namespace iTunesWannabe.Repositories
         public string GetMostPopularGenre(int customerId)
         {
             //(invoice) ->InvoiceId -> (InvoiceLine) -> trackId-> (Track) -> GenereId -> (Genre) -> Genre 
-            string sqlGetCustomerWithID = 
-                "SELECT DISTINCT a.CustomerId, b.InvoiceId, c.TrackId, d.GenreId, e.Name " +
-                "FROM Invoice" +
-                "JOIN (" +
-                "SELECT CustomerId" +
-                "FROM Customer" +
-                "WHERE CustomerId = 2" +
-                ") AS a ON Invoice.CustomerId = a.CustomerId" +
-                "JOIN(" +
-                "SELECT InvoiceId" +
-                "FROM InvoiceLine" +
-                ") AS b ON  Invoice.InvoiceId = b.InvoiceId" +
-                "JOIN(" +
-                "SELECT TrackId, InvoiceId" +
-                "FROM InvoiceLine" +
-                ") AS c ON  Invoice.InvoiceId = c.InvoiceId" +
-                "JOIN(" +
-                "SELECT TrackId, GenreId" +
-                "FROM Track) AS d ON  c.TrackId = d.TrackId" +
-                "JOIN(" +
-                "SELECT Name, GenreId" +
-                "FROM Genre" +
-                ") AS e ON  d.GenreId = e.GenreId";
+            string sqlGetCustomerWithID =
+                $"SELECT DISTINCT e.Name, a.CustomerId, b.InvoiceId, c.TrackId, d.GenreId\r\nFROM Invoice\r\nJOIN (\r\n    SELECT CustomerId\r\n    FROM Customer\r\n    WHERE CustomerId = {customerId}\r\n) AS a ON Invoice.CustomerId = a.CustomerId\r\nJOIN(\r\n    SELECT InvoiceId\r\n    FROM InvoiceLine\r\n) AS b ON  Invoice.InvoiceId = b.InvoiceId\r\nJOIN(\r\n    SELECT TrackId, InvoiceId\r\n    FROM InvoiceLine\r\n) AS c ON  Invoice.InvoiceId = c.InvoiceId\r\nJOIN(\r\n    SELECT TrackId, GenreId\r\n    FROM Track\r\n) AS d ON  c.TrackId = d.TrackId\r\nJOIN(\r\n    SELECT Name, GenreId\r\n    FROM Genre\r\n) AS e ON  d.GenreId = e.GenreId";
 
+            Dictionary<string, int> genreToAmount = new();
+            try
+            {
+                using (SqlConnection conn = new SqlConnection(ConnectionStringHelper.GetConnectionStringBuilder()))
+                {
+                    conn.Open();
 
-            //get name of name of ganre(s)
-            return "";
+                    //make command
+                    using (SqlCommand cmd = new SqlCommand(sqlGetCustomerWithID, conn))
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            string key;
+                            while (reader.Read())
+                            {
+                                key = reader.GetString(0);
+                                if (genreToAmount.ContainsKey(key)) genreToAmount[key]++;
+                                else genreToAmount.Add(key, 1);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SqlException error)
+            {
+                //failed
+                Console.WriteLine("something went wrong: " + error);
+            }
+            genreToAmount = genreToAmount.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
+            
+            //add genres to favorites
+            int lastAmount = 0;
+            List<string> favorites = new();
+            foreach(string key in genreToAmount.Keys)
+            {
+                if (genreToAmount[key] >= lastAmount)
+                {
+                    favorites.Add(key);
+                    lastAmount = genreToAmount[key];
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            //build string that reveals if it is a favorite or not
+            string rValue = "";
+            if(favorites.Count == 1)
+            {
+                rValue = "Favorite genre is: " + favorites[0];
+            }
+            else if(favorites.Count > 1) 
+            {
+                rValue = "Favourites genres are: ";
+                foreach(string genre in favorites)
+                {
+                    rValue += genre + ", ";
+                }
+                rValue = rValue.Substring(0, rValue.Length - 2);
+            }
+            return rValue;
         }
     }
 }
