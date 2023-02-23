@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -191,18 +192,30 @@ namespace iTunesWannabe.Repositories
                 "GROUP BY Customer.CustomerID, Customer.FirstName, Customer.LastName, Customer.Country, Customer.PostalCode, Customer.Phone, Customer.Email " +
                 "ORDER BY TotalSpent DESC";
 
-          return FetchCustomers(sql, true);
+            return FetchCustomers(sql, true);
         }
+
 
         //For a given customer, their most popular genre (in the case of a tie, display both). Most popular in this context
         //means the genre that corresponds to the most tracks from invoices associated to that customer.
         public string GetMostPopularGenre(int customerId)
         {
             //(invoice) ->InvoiceId -> (InvoiceLine) -> trackId-> (Track) -> GenereId -> (Genre) -> Genre 
-            string sqlGetCustomerWithID =
-                $"SELECT DISTINCT e.Name, a.CustomerId, b.InvoiceId, c.TrackId, d.GenreId\r\nFROM Invoice\r\nJOIN (\r\n    SELECT CustomerId\r\n    FROM Customer\r\n    WHERE CustomerId = {customerId}\r\n) AS a ON Invoice.CustomerId = a.CustomerId\r\nJOIN(\r\n    SELECT InvoiceId\r\n    FROM InvoiceLine\r\n) AS b ON  Invoice.InvoiceId = b.InvoiceId\r\nJOIN(\r\n    SELECT TrackId, InvoiceId\r\n    FROM InvoiceLine\r\n) AS c ON  Invoice.InvoiceId = c.InvoiceId\r\nJOIN(\r\n    SELECT TrackId, GenreId\r\n    FROM Track\r\n) AS d ON  c.TrackId = d.TrackId\r\nJOIN(\r\n    SELECT Name, GenreId\r\n    FROM Genre\r\n) AS e ON  d.GenreId = e.GenreId";
+            string sqlGetCustomerWithID = 
+                "SELECT TOP 1 PERCENT WITH TIES e.Name " +
+                "FROM Invoice " +
+                "JOIN (" +
+                "    SELECT CustomerId " +
+                "    FROM Customer " +
+                $"    WHERE CustomerId = {customerId} " +
+                ") AS a ON Invoice.CustomerId = a.CustomerId " +
+                "JOIN InvoiceLine AS b ON Invoice.InvoiceId = b.InvoiceId " +
+                "JOIN Track AS c ON b.TrackId = c.TrackId " +
+                "JOIN Genre AS e ON c.GenreId = e.GenreId " +
+                "GROUP BY e.GenreId, e.Name " +
+                "ORDER BY  COUNT(e.Name) DESC";
 
-            Dictionary<string, int> genreToAmount = new();
+            List<string> favorites = new();
             try
             {
                 using (SqlConnection conn = new SqlConnection(ConnectionStringHelper.GetConnectionStringBuilder()))
@@ -214,12 +227,9 @@ namespace iTunesWannabe.Repositories
                     {
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
-                            string key;
                             while (reader.Read())
                             {
-                                key = reader.GetString(0);
-                                if (genreToAmount.ContainsKey(key)) genreToAmount[key]++;
-                                else genreToAmount.Add(key, 1);
+                                favorites.Add(reader.GetString(0));
                             }
                         }
                     }
@@ -230,40 +240,24 @@ namespace iTunesWannabe.Repositories
                 //failed
                 Console.WriteLine("something went wrong: " + error);
             }
-            genreToAmount = genreToAmount.OrderByDescending(x => x.Value).ToDictionary(x => x.Key, x => x.Value);
 
-            //add genres to favorites
-            int lastAmount = 0;
-            List<string> favorites = new();
-            foreach (string key in genreToAmount.Keys)
-            {
-                if (genreToAmount[key] >= lastAmount)
-                {
-                    favorites.Add(key);
-                    lastAmount = genreToAmount[key];
-                }
-                else
-                {
-                    break;
-                }
-            }
-
-            //build string that reveals if it is a favorite or not
-            string rValue = "";
+            //return findings, different format depending on how many favurites were found
+            
             if (favorites.Count == 1)
             {
-                rValue = "Favorite genre is: " + favorites[0];
+                return "Favourite genre is " + favorites[0];
             }
-            else if (favorites.Count > 1)
+            if (favorites.Count > 1)
             {
-                rValue = "Favourites genres are: ";
-                foreach (string genre in favorites)
+                string rValue = "Favourites genres are: ";
+                foreach (string favurite in favorites)
                 {
-                    rValue += genre + ", ";
+                    rValue += favurite + ", ";
                 }
                 rValue = rValue.Substring(0, rValue.Length - 2);
+                return rValue;
             }
-            return rValue;
+            return "No recorded purchases";
         }
     }
 }
