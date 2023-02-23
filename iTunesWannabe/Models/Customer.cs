@@ -1,22 +1,10 @@
-﻿using iTunesWannabe.Repositories;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Linq;
-using System.Numerics;
-using System.Runtime.ConstrainedExecution;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
-using static System.Net.WebRequestMethods;
-
-namespace iTunesWannabe.Models
+﻿namespace iTunesWannabe.Models
 {
     public class Customer
     {
-        public Customer(string? firstName, string? lastName, string? country, string? postalCode, string? phone, string? email, decimal moneySpent = 0)
+        public Customer(int? id, string? firstName, string? lastName, string? country, string? postalCode, string? phone, string? email, decimal? moneySpent = 0)
         {
+            this.CustomerID = id;
             this.FirstName = firstName;
             this.LastName = lastName;
             this.Country = country;
@@ -25,9 +13,8 @@ namespace iTunesWannabe.Models
             this.Email = email;
             this.TotalSpent = moneySpent;
         }
-        public Customer(int? id, string? firstName, string? lastName, string? country, string? postalCode, string? phone, string? email, decimal? moneySpent = 0)
+        public Customer(string? firstName, string? lastName, string? country, string? postalCode, string? phone, string? email, decimal? moneySpent = 0)
         {
-            this.CustomerID = id;
             this.FirstName = firstName;
             this.LastName = lastName;
             this.Country = country;

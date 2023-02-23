@@ -1,24 +1,27 @@
 ﻿using iTunesWannabe.Models;
 using Microsoft.Data.SqlClient;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Linq;
-using System.Linq.Expressions;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace iTunesWannabe.Repositories
-{
+{    
     public class CustomerRepository : ICustomers
     {
+
+        /// <summary>
+        /// A generic function other more specifed function can call whenever they need to get customer(s).
+        /// </summary>
+        /// <param name="sql">define the search of customers</param>
+        /// <param name="includeInvoice">A paraneter to set to true if we also want to see the amount of money a 
+        /// customer have spent in the store. Not data always needed and would require extra data from the sql
+        /// string, but not too unique to make it it's own function.</param>
+        /// <returns>Returns a list of all costumers mathced with the sql query </returns>
         private List<Customer> FetchCustomers(string sql, bool includeInvoice = false)
         {
+            //store all matching customer in this list
             List<Customer> allCustomers = new List<Customer>();
             try
             {
+                //make connection to the server
                 using (SqlConnection conn = new SqlConnection(ConnectionStringHelper.GetConnectionStringBuilder()))
                 {
                     conn.Open();
@@ -30,7 +33,7 @@ namespace iTunesWannabe.Repositories
                         {
                             while (reader.Read())
                             {
-                                //handle result
+                                //save all values
                                 allCustomers.Add(
                                     new Customer(
                                  reader.IsDBNull(0) ? -1 : reader.GetInt32(0),
@@ -40,8 +43,7 @@ namespace iTunesWannabe.Repositories
                                  reader.IsDBNull(4) ? "NULL" : reader.GetString(4),
                                  reader.IsDBNull(5) ? "NULL" : reader.GetString(5),
                                  reader.IsDBNull(6) ? "NULL" : reader.GetString(6),
-                                 includeInvoice ? reader.IsDBNull(7) ? -1 : reader.GetDecimal(7) : 0)
-                                    );
+                                 includeInvoice ? reader.IsDBNull(7) ? -1 : reader.GetDecimal(7) : null));
                             }
                         }
                     }
@@ -49,12 +51,24 @@ namespace iTunesWannabe.Repositories
             }
             catch (SqlException error)
             {
-                //failed
-                Console.WriteLine("something went wrong: " + error);
+                //failed, throwing an error
+                throw new Exception("something went wrong: "  + error.Message);
             }
+
+            if(allCustomers.Count <= 0)
+            {
+                throw new Exception("no matches found");
+            }
+
+            //return all values
             return allCustomers;
         }
-
+        /// <summary>
+        /// Alter the database in any way (not delete), how is specified in the sql parameter
+        /// </summary>
+        /// <param name="customer">sets (new) values for a customer</param>
+        /// <param name="sql">instructs how to alter the database</param>
+        /// <exception cref="Exception"></exception>
         private void EditCustomerDatabase(Customer customer, string sql)
         {
             try
@@ -75,7 +89,7 @@ namespace iTunesWannabe.Repositories
 
                         if (cmd.ExecuteNonQuery() <= 0)
                         {
-                            throw new Exception("could not add new customer " + customer.ToString());
+                            throw new Exception("could not make changes to " + customer.ToString());
                         }
                     }
                 }
@@ -86,21 +100,33 @@ namespace iTunesWannabe.Repositories
             }
         }
 
+        /// <summary>
+        /// A method to call upon whenever we want to fetch a list of all customers in the table, to use for iteration
+        /// </summary>
+        /// <returns>A list of all customers</returns>
         public List<Customer> GetAll()
         {
             string sql = "SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer";
             return FetchCustomers(sql);
         }
 
-        public void PrintAllCustomerInfo(List<Customer> customers, bool displayInvoice = false)
+        /// <summary>
+        /// Quite literally, a method to print the info of all customers in the tablee
+        /// </summary>
+        /// <param name="customers">a list of customer to be displayed</param>
+        public void PrintAllCustomerInfo(List<Customer> customers)
         {
             for (int i = 0; i < customers.Count; i++)
             {
-                PrintCustomerInfo(customers[i], displayInvoice);
+                PrintCustomerInfo(customers[i]);
             }
         }
 
-        public void PrintCustomerInfo(Customer customer, bool displayInvoice = false)
+        /// <summary>
+        /// Following, a method for printing the info of a single customer
+        /// </summary>
+        /// <param name="customer">Of the customer class, containing the data of customers corresponding to the columns of the customer table</param>
+        public void PrintCustomerInfo(Customer customer)
         {
             StringBuilder sb = new StringBuilder();
             sb.Append(customer.CustomerID + "  ");
@@ -110,38 +136,68 @@ namespace iTunesWannabe.Repositories
             sb.Append(customer.PostalCode + "  ");
             sb.Append(customer.Phone + "  ");
             sb.Append(customer.Email + "  ");
-            if (displayInvoice)
+            if (customer.TotalSpent != null)
                 sb.Append(customer.TotalSpent + "$");
 
             Console.WriteLine(sb);
         }
 
+        /// <summary>
+        /// A method for fetching a single customer by their ID. Useful for retrieving the same customer even if they undergo info changes.
+        /// </summary>
+        /// <param name="id">Fetching a customer through their id, without a parameter "int" id, is indeed challenging</param>
+        /// <returns>It's gonna be either a customer, an elephant, or a motorcycle. Your guess.</returns>
         public Customer GetById(int id)
         {
-            string sql = "SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer";
-            return FetchCustomers(sql)[id - 1];
-            //todo do this with sql
+            string sql = "SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email " +
+            "   FROM Customer " +
+            $"  WHERE CustomerId = {id}";
+
+            //as the function returns a list but this function only need one element
+            //we take the first (and only) element form the list
+            return FetchCustomers(sql)[0];
         }
 
+        /// <summary>
+        /// If we have multiple people named Simba, we can retrieve them all by searching for the name Simba
+        /// </summary>
+        /// <param name="name">Simba. I mean name, for looking for Simba, I mean people with specific names</param>
+        /// <returns>Simba, I mean all the customers sharing the same name</returns>
         public List<Customer> GetAllByName(string name)
         {
             string sql = $"SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer WHERE FirstName LIKE '%{name}%'";
-            return FetchCustomers(sql);
+            List<Customer> customers = FetchCustomers(sql);
+            if (customers.Count <= 0) throw new Exception($"no customers found with the name {name}");
+            return customers;
         }
 
+        /// <summary>
+        /// A method used for returning a single customer with the name equal to the input
+        /// </summary>
+        /// <param name="name">A string for searching for customers through a given name. In an alternate Earth, perhaps names are more common as ints</param>
+        /// <returns>A single customer, probably with an extraordinarily ordinary name</returns>
+        /// <exception cref="Exception">And if they don't exist in the table, they lucked out and found Spotify instead</exception>
         public Customer GetOneByName(string name)
         {
-            List<Customer> customers = GetAllByName(name);
-            if (customers.Count <= 0) throw new Exception($"no customers found with the name {name}");
             return GetAllByName(name)[0];
         }
 
+        /// <summary>
+        /// If you'd ever need to retrieve a certain section of the customer table, this method is your guy. Or girl. Shan't assume a method's gender in 2023
+        /// </summary>
+        /// <param name="range">The amount of customers you want to retrieve</param>
+        /// <param name="offset">From which id you want to start searching</param>
+        /// <returns>A section of the customer table containing the data you asked for. </returns>
         public List<Customer> GetPage(int range, int offset)
         {
-            string sql = $"SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer ORDER BY CustomerID OFFSET {offset} ROWS FETCH NEXT {range} ROWS ONLY;";
+            string sql = $"SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer ORDER BY CustomerID OFFSET {offset - 1} ROWS FETCH NEXT {range} ROWS ONLY;";
             return FetchCustomers(sql);
         }
 
+        /// <summary>
+        /// The function that confirmed SSMS's temperament. It's supposed to add new elements to the customer table but honestly what do I know?
+        /// </summary>
+        /// <param name="customer">An input of all the data you want the new element to have. Trust me, you can even make a clone army</param>
         public void AddNewElement(Customer customer)
         {
             string sql = "INSERT INTO Customer(FirstName, LastName, Country, PostalCode, Phone, Email) " +
@@ -150,6 +206,11 @@ namespace iTunesWannabe.Repositories
             EditCustomerDatabase(customer, sql);
         }
 
+        /// <summary>
+        /// A method allowing you to alter data of any element in the customer table. Except ID. Because, you know, that'd defeat the point
+        /// </summary>
+        /// <param name="customer">Takes in new data for a customer, with any alterations wished upon them. Except ID</param>
+        /// <param name="idIndex">We decide which customer to alter through their id</param>
         public void UpdateElement(Customer customer, int idIndex)
         {
             string sql = "UPDATE Customer " +
@@ -159,13 +220,16 @@ namespace iTunesWannabe.Repositories
             EditCustomerDatabase(customer, sql);
         }
 
+        /// <summary>
+        /// If you run this method, you'll see there lives about 13 people in all of the USA
+        /// </summary>
+        /// <returns>The number of people living in an entire country. Sweden's getting rather lonely</returns>
         public string GetHabitantsPerCountry()
         {
-            string sqlGetAll = "SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer";
-            List<Customer> allCustomers = FetchCustomers(sqlGetAll);
+            string sql = "SELECT CustomerID, FirstName, LastName, Country, PostalCode, Phone, Email FROM Customer";
+            List<Customer> allCustomers = FetchCustomers(sql);
 
             Dictionary<string, int> inhabitants = new();
-
 
             for (int i = 0; i < allCustomers.Count; i++)
             {
@@ -182,6 +246,10 @@ namespace iTunesWannabe.Repositories
             return rValue;
         }
 
+        /// <summary>
+        /// The saddest method. The method literally telling you to your face if you overspend on music in 2023.
+        /// </summary>
+        /// <returns>Customer data, plus their invoices in descending order from top to bottom. So basically a Hall of Shame</returns>
         public List<Customer> GetHighestSpenders()
         {
             //fetch all invoices
@@ -195,13 +263,16 @@ namespace iTunesWannabe.Repositories
             return FetchCustomers(sql, true);
         }
 
-
-        //For a given customer, their most popular genre (in the case of a tie, display both). Most popular in this context
-        //means the genre that corresponds to the most tracks from invoices associated to that customer.
+        /// <summary>
+        /// Displaying every customer's favorite genre, or genres in case they buy the same amount of multiple song types
+        /// </summary>
+        /// <param name="customerId">ID to decide which customer you specifically want to stalk</param>
+        /// <returns>Fav genre</returns>
         public string GetMostPopularGenre(int customerId)
         {
-            //(invoice) ->InvoiceId -> (InvoiceLine) -> trackId-> (Track) -> GenereId -> (Genre) -> Genre 
-            string sqlGetCustomerWithID = 
+            //A labyrinth of joins linking tables to the point where we can compare customer IDs to genre names.
+            //I'm sure you had good fun imagining students Sherlock Holmesing their way through the DB to find this data. (>;_;)>
+            string sql = 
                 "SELECT TOP 1 PERCENT WITH TIES e.Name " +
                 "FROM Invoice " +
                 "JOIN (" +
@@ -213,7 +284,7 @@ namespace iTunesWannabe.Repositories
                 "JOIN Track AS c ON b.TrackId = c.TrackId " +
                 "JOIN Genre AS e ON c.GenreId = e.GenreId " +
                 "GROUP BY e.GenreId, e.Name " +
-                "ORDER BY  COUNT(e.Name) DESC";
+                "ORDER BY COUNT(e.Name) DESC";
 
             List<string> favorites = new();
             try
@@ -223,7 +294,7 @@ namespace iTunesWannabe.Repositories
                     conn.Open();
 
                     //make command
-                    using (SqlCommand cmd = new SqlCommand(sqlGetCustomerWithID, conn))
+                    using (SqlCommand cmd = new SqlCommand(sql, conn))
                     {
                         using (SqlDataReader reader = cmd.ExecuteReader())
                         {
@@ -242,14 +313,13 @@ namespace iTunesWannabe.Repositories
             }
 
             //return findings, different format depending on how many favurites were found
-            
             if (favorites.Count == 1)
             {
                 return "Favourite genre is " + favorites[0];
             }
             if (favorites.Count > 1)
             {
-                string rValue = "Favourites genres are: ";
+                string rValue = "Favourite genres are: ";
                 foreach (string favurite in favorites)
                 {
                     rValue += favurite + ", ";

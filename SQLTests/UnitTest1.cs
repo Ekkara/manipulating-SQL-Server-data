@@ -18,11 +18,11 @@ namespace SQLTests
 {
     public class UnitTest1
     {
-        //only works before modefying chinook customers
+        //only works before modefying chinook customers!
         [Fact]
         public void When_FetchingAllCustomers_Expect_ReturningAListOfAllCustomers()
         {
-            //Assign writting this was a mistake
+            //Assign (writting this was a mistake)
             List<Customer> expectedCustomers = new List<Customer> {
 new Customer(1,"Luís","Gonçalves","Brazil","12227-000","+55 (12) 3923-5555","luisg@embraer.com.br"),
 new Customer(2,"Leonie","Köhler","Germany","70174","+49 0711 2842222","leonekohler@surfeu.de"),

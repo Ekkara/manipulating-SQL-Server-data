@@ -14,6 +14,10 @@ namespace iTunesWannabe.Repositories
 {
     public class ConnectionStringHelper
     {
+        /// <summary>
+        /// Generates the string used to create and manipulate the sql server database 
+        /// </summary>
+        /// <returns>return the genereated string</returns>
         public static string GetConnectionStringBuilder()
         {
             SqlConnectionStringBuilder connectionStringBuilder = new SqlConnectionStringBuilder();
