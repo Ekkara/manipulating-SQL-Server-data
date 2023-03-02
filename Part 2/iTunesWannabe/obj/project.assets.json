@@ -2008,11 +2008,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\EGus01\\Documents\\GitHub\\manipulating-SQL-Server-data\\iTunesWannabe\\iTunesWannabe.csproj",
+      "projectUniqueName": "C:\\Users\\EGus01\\Documents\\GitHub\\manipulating-SQL-Server-data\\Part 2\\iTunesWannabe\\iTunesWannabe.csproj",
       "projectName": "iTunesWannabe",
-      "projectPath": "C:\\Users\\EGus01\\Documents\\GitHub\\manipulating-SQL-Server-data\\iTunesWannabe\\iTunesWannabe.csproj",
+      "projectPath": "C:\\Users\\EGus01\\Documents\\GitHub\\manipulating-SQL-Server-data\\Part 2\\iTunesWannabe\\iTunesWannabe.csproj",
       "packagesPath": "C:\\Users\\EGus01\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\EGus01\\Documents\\GitHub\\manipulating-SQL-Server-data\\iTunesWannabe\\obj\\",
+      "outputPath": "C:\\Users\\EGus01\\Documents\\GitHub\\manipulating-SQL-Server-data\\Part 2\\iTunesWannabe\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\EGus01\\AppData\\Roaming\\NuGet\\NuGet.Config",

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "NLREl8ELbDdhQelZ3d7LbiRLvz9c0B0RIDdr/XJX0gayHxhRJsbIQveejzT/vW2dVuyj6Q1wZAun66uGLKhsKw==",
+  "dgSpecHash": "gw1kImZae64XYdcr+XxCMvu2XCOKK7tUhwMxakCYacEixkXAaMTLnvxJ7f7AnY2c/2tkWdKss8fIOE/XU3P7Dg==",
   "success": true,
-  "projectFilePath": "C:\\Users\\EGus01\\Documents\\GitHub\\manipulating-SQL-Server-data\\iTunesWannabe\\iTunesWannabe.csproj",
+  "projectFilePath": "C:\\Users\\EGus01\\Documents\\GitHub\\manipulating-SQL-Server-data\\Part 2\\iTunesWannabe\\iTunesWannabe.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\EGus01\\.nuget\\packages\\azure.core\\1.25.0\\azure.core.1.25.0.nupkg.sha512",
     "C:\\Users\\EGus01\\.nuget\\packages\\azure.identity\\1.7.0\\azure.identity.1.7.0.nupkg.sha512",
